@@ -484,13 +484,10 @@ const MobileSearchPanel = styled.div<{ $pinned: boolean }>`
   right: 0;
   top: ${({ $pinned }) => ($pinned ? '4.25rem' : '4.5rem')};
   z-index: 1;
-  padding: 0.75rem ${({ theme }) => theme.gutter};
-  background: rgba(12, 12, 12, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  /* no background of its own: only the search pill itself is visible */
+  padding: 0.5rem ${({ theme }) => theme.gutter};
   color: ${({ theme }) => theme.colors.white};
-  pointer-events: auto;
+  pointer-events: none;
   animation: ${dropIn} 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 
   ${({ theme }) => theme.media.sm} {
@@ -510,7 +507,13 @@ const PanelInput = styled.input`
   padding: 0 1rem 0 2.75rem;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  /* dark glass on its own, so it stays readable over the artwork */
+  background: rgba(18, 18, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  pointer-events: auto;
   color: ${({ theme }) => theme.colors.white};
   /* 16px stops iOS Safari from zooming the page when the field is focused */
   font-size: 1rem;
