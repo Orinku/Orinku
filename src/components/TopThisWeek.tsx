@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import useEmblaCarousel from 'embla-carousel-react'
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import styled, { css, keyframes } from 'styled-components'
 import type { Anime } from '../types/anime'
 
@@ -11,7 +12,11 @@ interface TopThisWeekProps {
 const SKELETON_COUNT = 6
 
 export function TopThisWeek({ items }: TopThisWeekProps) {
-  const [emblaRef] = useEmblaCarousel({ align: 'start', dragFree: true })
+  // The wheel plugin lets a trackpad two-finger swipe (or a tilt-wheel mouse)
+  // scroll the row sideways. Vertical wheel movement still scrolls the page.
+  const [emblaRef] = useEmblaCarousel({ align: 'start', dragFree: true }, [
+    WheelGesturesPlugin(),
+  ])
 
   return (
     <Section aria-labelledby="top-this-week">
@@ -94,6 +99,8 @@ const Viewport = styled.div`
   /* room for the hover lift so it isn't clipped */
   padding-top: 0.75rem;
   cursor: grab;
+  /* stops a sideways swipe at the row's end from triggering browser back/forward */
+  overscroll-behavior-x: contain;
 
   &:active {
     cursor: grabbing;
