@@ -3,6 +3,7 @@ import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import { Link } from 'react-router-dom'
 import styled, { css, keyframes } from 'styled-components'
 import type { TrendingItem } from '../types/api'
+import { animeSlug } from '../lib/format'
 import { ErrorState } from './ErrorState'
 
 interface TrendingProps {
@@ -13,9 +14,6 @@ interface TrendingProps {
 }
 
 const SKELETON_COUNT = 6
-
-/** The API may append an episode (".../ep-8"); the details page only wants the title's slug. */
-const animeSlug = (slug: string) => slug.split('/')[0]
 
 export function Trending({ items, isError, onRetry }: TrendingProps) {
   // The wheel plugin lets a trackpad two-finger swipe (or a tilt-wheel mouse)

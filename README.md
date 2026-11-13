@@ -23,11 +23,17 @@ cp .env.example .env
 VITE_API_BASE_URL=https://your-api-domain.com
 ```
 
-| Page area         | Request                                                   |
-| ----------------- | --------------------------------------------------------- |
-| Hero slideshow    | `GET {VITE_API_BASE_URL}/api` (`results.spotlights`)      |
-| Genre bar         | `GET {VITE_API_BASE_URL}/api` (`results.genres`, filtered by `src/data/genres.ts`) |
-| Trending row      | `GET {VITE_API_BASE_URL}/api` (`results.trending`)        |
+| Page area                  | Request                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
+| Hero, genre bar, Trending  | `GET /api` (`spotlights`, `genres`, `trending`)                      |
+| Newest tab                 | `GET /api/new-release?page=N`                                        |
+| Popular tab                | `GET /api/most-popular?page=N`                                       |
+| New Added tab              | `GET /api/newly-added?page=N`                                        |
+| Top Anime (Today/Week/Month) | `GET /api/top-ten` (`results.today / week / month`)                |
+| Airing Schedule            | `GET /api/schedule` (times are UTC, shown in the visitor's time zone) |
+
+All paths are relative to `VITE_API_BASE_URL`. The page-number query parameter name is the
+`PAGE_PARAM` constant in `src/api/index.ts`.
 
 - Restart `npm run dev` after editing `.env`; Vite only reads it at start-up.
 - The API must allow cross-origin requests (CORS) from the site's origin.
@@ -39,7 +45,7 @@ VITE_API_BASE_URL=https://your-api-domain.com
 - **styled-components** with a typed theme (`src/styles/theme.ts`)
 - **React Router** for pages
 - **TanStack Query** for data fetching and caching
-- **Embla Carousel** (+ wheel gestures) for the "Top this week" row
+- **Embla Carousel** (+ wheel gestures) for the Trending row
 
 ## Structure
 
@@ -47,8 +53,9 @@ VITE_API_BASE_URL=https://your-api-domain.com
 src/
   api/          API client (client.ts) and endpoint functions (index.ts)
   assets/brand/ logos (fox mark + wordmark, black and white)
-  components/   Navbar, Hero (slideshow), GenreBar, Trending, ErrorState, Layout
-  hooks/        useHome
+  components/   Navbar, Hero, GenreBar, Trending, BrowseSection, TopAnime, Schedule, shared bits
+  hooks/        useHome, useTopTen, useBrowse, useSchedule, useNow
+  lib/          format helpers (slugs, status, UTC to local time)
   pages/        Home, ComingSoon (placeholder for unbuilt pages)
   styles/       theme, global styles, styled-components typings
   types/        API response types
@@ -56,7 +63,8 @@ src/
 
 ## Status
 
-- [x] Home page (hero slideshow + top ten with Today / Week / Month)
+- [x] Home: hero slideshow, genre bar, Trending, Newest / Popular / New Added grid, Top Anime, Airing Schedule
+- [ ] Home: Just Finished, Top Movies, Upcoming panels (waiting on their API endpoints)
 - [ ] Now Airing
 - [ ] Movies
 - [ ] Genre
