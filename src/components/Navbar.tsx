@@ -177,13 +177,28 @@ const dropIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `
 
+/* Frosted dark glass, shared by the floating capsules and the phone search pill.
+   Kept translucent on purpose: a heavier tint would hide the blur behind it. */
+const glass = css`
+  background: rgba(18, 18, 18, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+`
+
 /* The dark glass look shared by both floating capsules.
    The blur lives on a pseudo-element so the capsule itself has no filter. */
 const capsule = css`
   position: relative;
   isolation: isolate;
   color: ${({ theme }) => theme.colors.white};
-  animation: ${dropIn} 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* No fill-mode on purpose: a finished animation that is still "in effect" keeps an
+     opacity animation on the capsule, which makes it its own backdrop root, and then
+     the blur below only sees the capsule's own contents instead of the page. */
+  animation: ${dropIn} 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 
   &::before {
     content: '';
@@ -191,11 +206,7 @@ const capsule = css`
     inset: 0;
     z-index: -1;
     border-radius: 999px;
-    background: rgba(18, 18, 18, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    ${glass}
   }
 `
 
@@ -488,7 +499,8 @@ const MobileSearchPanel = styled.div<{ $pinned: boolean }>`
   padding: 0.5rem ${({ theme }) => theme.gutter};
   color: ${({ theme }) => theme.colors.white};
   pointer-events: none;
-  animation: ${dropIn} 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* no fill-mode: see the note on the capsule styles, the search pill's blur depends on it */
+  animation: ${dropIn} 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 
   ${({ theme }) => theme.media.sm} {
     display: block;
@@ -507,12 +519,7 @@ const PanelInput = styled.input`
   padding: 0 1rem 0 2.75rem;
   border: 0;
   border-radius: 999px;
-  /* dark glass on its own, so it stays readable over the artwork */
-  background: rgba(18, 18, 18, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  ${glass}
   pointer-events: auto;
   color: ${({ theme }) => theme.colors.white};
   /* 16px stops iOS Safari from zooming the page when the field is focused */
