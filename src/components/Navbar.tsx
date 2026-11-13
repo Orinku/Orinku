@@ -27,6 +27,14 @@ function SearchIcon() {
   )
 }
 
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  )
+}
+
 export function Navbar() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
@@ -34,6 +42,9 @@ export function Navbar() {
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
   const [searchOpen, setSearchOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  // Phones get a full-width search bar under the nav instead of the inline box.
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const mobileSearchRef = useRef<HTMLInputElement>(null)
 
   // Only the home page has the light hero; every other page is plain black.
   const onDark = pathname !== '/'
@@ -60,6 +71,10 @@ export function Navbar() {
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus()
   }, [searchOpen])
+
+  useEffect(() => {
+    if (mobileSearchOpen) mobileSearchRef.current?.focus()
+  }, [mobileSearchOpen])
 
   // While floating, the search is just an icon until it's clicked.
   const showSearchInput = !pastTop || searchOpen
@@ -107,18 +122,52 @@ export function Navbar() {
         <Avatar type="button" aria-label="Your profile">
           <img src={foxBlack} alt="" />
         </Avatar>
+        <MobileSearchButton
+          type="button"
+          aria-label={mobileSearchOpen ? 'Close search' : 'Search anime'}
+          aria-expanded={mobileSearchOpen}
+          aria-controls="mobile-search"
+          onClick={() => {
+            setMobileSearchOpen((value) => !value)
+            setOpen(false)
+          }}
+        >
+          {mobileSearchOpen ? <CloseIcon /> : <SearchIcon />}
+        </MobileSearchButton>
         <MenuButton
           type="button"
           aria-label="Menu"
           aria-expanded={open}
           aria-controls="primary-nav"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => {
+            setOpen((value) => !value)
+            setMobileSearchOpen(false)
+          }}
         >
           <span />
           <span />
           <span />
         </MenuButton>
       </Actions>
+
+      {mobileSearchOpen && (
+        <MobileSearchPanel id="mobile-search" $pinned={pastTop}>
+          <PanelField>
+            <SearchGlyph>
+              <SearchIcon />
+            </SearchGlyph>
+            <PanelInput
+              ref={mobileSearchRef}
+              type="search"
+              placeholder="Search"
+              aria-label="Search anime"
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setMobileSearchOpen(false)
+              }}
+            />
+          </PanelField>
+        </MobileSearchPanel>
+      )}
     </Bar>
   )
 }
@@ -406,6 +455,73 @@ const Avatar = styled.button`
     width: 62%;
     height: 62%;
     object-fit: contain;
+  }
+`
+
+/* Phones only: sits between the profile and the menu button. */
+const MobileSearchButton = styled.button`
+  display: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.colors.glass};
+  color: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  place-items: center;
+
+  ${({ theme }) => theme.media.sm} {
+    display: grid;
+  }
+`
+
+/* Edge to edge, hanging just below the nav (or below the floating capsule once scrolled). */
+const MobileSearchPanel = styled.div<{ $pinned: boolean }>`
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: ${({ $pinned }) => ($pinned ? '4.25rem' : '4.5rem')};
+  z-index: 1;
+  padding: 0.75rem ${({ theme }) => theme.gutter};
+  background: rgba(12, 12, 12, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: ${({ theme }) => theme.colors.white};
+  pointer-events: auto;
+  animation: ${dropIn} 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  ${({ theme }) => theme.media.sm} {
+    display: block;
+  }
+`
+
+const PanelField = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`
+
+const PanelInput = styled.input`
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 1rem 0 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: ${({ theme }) => theme.colors.white};
+  /* 16px stops iOS Safari from zooming the page when the field is focused */
+  font-size: 1rem;
+  font-weight: 300;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &::-webkit-search-cancel-button {
+    display: none;
   }
 `
 
