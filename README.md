@@ -12,19 +12,20 @@ npm run build    # type-check + production build
 
 ## API setup
 
-The site reads its data from the Orinku API. Set the address in `.env`:
+The site reads its data from the Orinku API. Set the API's domain in `.env`
+(origin only: no trailing slash and no `/api`):
 
 ```
-VITE_API_URL=http://localhost:4000/api
+VITE_API_BASE_URL=https://your-api-domain.com
 ```
 
-| Page area           | Request                         |
-| ------------------- | ------------------------------- |
-| Hero slideshow      | `GET {VITE_API_URL}` (`results.spotlights`) |
-| Top this week row   | `GET {VITE_API_URL}/top-ten` (`results.today / week / month`) |
+| Page area         | Request                                                   |
+| ----------------- | --------------------------------------------------------- |
+| Hero slideshow    | `GET {VITE_API_BASE_URL}/api` (`results.spotlights`)      |
+| Top this week row | `GET {VITE_API_BASE_URL}/api/top-ten` (`results.today / week / month`) |
 
-- Change the port (or the whole URL) in `.env`, then **restart `npm run dev`** — Vite only reads `.env` at start-up.
-- The API must allow cross-origin requests from the dev server (CORS), since the site runs on a different port.
+- Restart `npm run dev` after editing `.env`; Vite only reads it at start-up.
+- The API must allow cross-origin requests (CORS) from the site's origin.
 - `.env.example` is a template to copy.
 
 ## Stack

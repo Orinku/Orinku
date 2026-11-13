@@ -2,7 +2,7 @@ export {}
 
 declare global {
   interface ImportMetaEnv {
-    /** Base URL of the Orinku API, including the `/api` prefix. */
-    readonly VITE_API_URL?: string
+    /** Origin of the Orinku API, e.g. `https://your-api-domain.com` (no `/api`). */
+    readonly VITE_API_BASE_URL?: string
   }
 }
