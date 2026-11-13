@@ -5,7 +5,7 @@ import styled, { css, keyframes } from 'styled-components'
 import type { Spotlight } from '../types/api'
 import { ErrorState } from './ErrorState'
 
-const AUTOPLAY_MS = 7000
+const AUTOPLAY_MS = 5000
 const SWIPE_PX = 50
 
 interface HeroProps {
