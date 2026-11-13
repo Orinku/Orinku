@@ -20,9 +20,9 @@ const PERIODS: { id: TopTenPeriod; label: string }[] = [
 ]
 
 const HEADINGS: Record<TopTenPeriod, string> = {
-  today: 'Top today',
-  week: 'Top this week',
-  month: 'Top this month',
+  today: 'Top 10 · Today',
+  week: 'Top 10 · Week',
+  month: 'Top 10 · Month',
 }
 
 const SKELETON_COUNT = 6
@@ -113,9 +113,11 @@ const pulse = keyframes`
   50% { opacity: 1; }
 `
 
+/* Opacity only: a transform in here (with fill-mode "both") would stay applied
+   and override any hover transform on the same element. */
 const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `
 
 const Section = styled.section`
@@ -192,7 +194,8 @@ const ErrorWrap = styled.div`
 const Viewport = styled.div`
   overflow: hidden;
   /* room for the hover lift so it isn't clipped */
-  padding-top: 0.75rem;
+  padding-top: 1.25rem;
+  margin-top: -0.5rem;
   cursor: grab;
   /* stops a sideways swipe at the row's end from triggering browser back/forward */
   overscroll-behavior-x: contain;
@@ -236,7 +239,7 @@ const Poster = styled.div<{ $loading?: boolean; $animate?: boolean }>`
   border-radius: clamp(12px, 1.2vw, 26px);
   background: ${({ theme }) => theme.colors.surface};
   overflow: hidden;
-  transition: transform 0.3s ease;
+  transition: box-shadow 0.35s ease;
   animation: ${({ $loading, $animate }) =>
     $loading
       ? css`
@@ -260,14 +263,31 @@ const cardStyles = css`
   position: relative;
   display: block;
   width: var(--poster);
-
-  &:hover ${Poster}, &:focus-visible ${Poster} {
-    transform: translateY(-0.5rem);
-  }
 `
 
+/* The whole card (poster + rank number) nudges up on hover / keyboard focus. */
 const Card = styled(Link)`
   ${cardStyles}
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: none;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-0.75rem);
+  }
+
+  &:hover ${Poster}, &:focus-visible ${Poster} {
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
 `
 
 const SkeletonCard = styled.div`
