@@ -1,3 +1,4 @@
+import { GenreBar } from '../components/GenreBar'
 import { Hero } from '../components/Hero'
 import { Trending } from '../components/Trending'
 import { useHome } from '../hooks/useHome'
@@ -11,6 +12,7 @@ export default function Home() {
   return (
     <>
       <Hero slides={slides} isError={home.isError} onRetry={() => void home.refetch()} />
+      <GenreBar genres={home.data?.genres} isError={home.isError} />
       <Trending
         items={home.data?.trending}
         isError={home.isError}

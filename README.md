@@ -26,6 +26,7 @@ VITE_API_BASE_URL=https://your-api-domain.com
 | Page area         | Request                                                   |
 | ----------------- | --------------------------------------------------------- |
 | Hero slideshow    | `GET {VITE_API_BASE_URL}/api` (`results.spotlights`)      |
+| Genre bar         | `GET {VITE_API_BASE_URL}/api` (`results.genres`, filtered by `src/data/genres.ts`) |
 | Trending row      | `GET {VITE_API_BASE_URL}/api` (`results.trending`)        |
 
 - Restart `npm run dev` after editing `.env`; Vite only reads it at start-up.
@@ -46,7 +47,7 @@ VITE_API_BASE_URL=https://your-api-domain.com
 src/
   api/          API client (client.ts) and endpoint functions (index.ts)
   assets/brand/ logos (fox mark + wordmark, black and white)
-  components/   Navbar, Hero (slideshow), Trending, ErrorState, Layout
+  components/   Navbar, Hero (slideshow), GenreBar, Trending, ErrorState, Layout
   hooks/        useHome
   pages/        Home, ComingSoon (placeholder for unbuilt pages)
   styles/       theme, global styles, styled-components typings
