@@ -26,7 +26,7 @@ VITE_API_BASE_URL=https://your-api-domain.com
 | Page area         | Request                                                   |
 | ----------------- | --------------------------------------------------------- |
 | Hero slideshow    | `GET {VITE_API_BASE_URL}/api` (`results.spotlights`)      |
-| Top this week row | `GET {VITE_API_BASE_URL}/api/top-ten` (`results.today / week / month`) |
+| Trending row      | `GET {VITE_API_BASE_URL}/api` (`results.trending`)        |
 
 - Restart `npm run dev` after editing `.env`; Vite only reads it at start-up.
 - The API must allow cross-origin requests (CORS) from the site's origin.
@@ -46,8 +46,8 @@ VITE_API_BASE_URL=https://your-api-domain.com
 src/
   api/          API client (client.ts) and endpoint functions (index.ts)
   assets/brand/ logos (fox mark + wordmark, black and white)
-  components/   Navbar, Hero (slideshow), TopThisWeek, ErrorState, Layout
-  hooks/        useHome, useTopTen
+  components/   Navbar, Hero (slideshow), Trending, ErrorState, Layout
+  hooks/        useHome
   pages/        Home, ComingSoon (placeholder for unbuilt pages)
   styles/       theme, global styles, styled-components typings
   types/        API response types

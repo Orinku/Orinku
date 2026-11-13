@@ -1,83 +1,47 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import useEmblaCarousel from 'embla-carousel-react'
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
+import { Link } from 'react-router-dom'
 import styled, { css, keyframes } from 'styled-components'
-import type { TopTenData, TopTenPeriod } from '../types/api'
+import type { TrendingItem } from '../types/api'
 import { ErrorState } from './ErrorState'
 
-interface TopThisWeekProps {
+interface TrendingProps {
   /** `undefined` while loading. */
-  data: TopTenData | undefined
+  items: TrendingItem[] | undefined
   isError: boolean
   onRetry: () => void
 }
 
-const PERIODS: { id: TopTenPeriod; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: 'week', label: 'Week' },
-  { id: 'month', label: 'Month' },
-]
-
-const HEADINGS: Record<TopTenPeriod, string> = {
-  today: 'Top 10 · Today',
-  week: 'Top 10 · Week',
-  month: 'Top 10 · Month',
-}
-
 const SKELETON_COUNT = 6
 
-export function TopThisWeek({ data, isError, onRetry }: TopThisWeekProps) {
-  const [period, setPeriod] = useState<TopTenPeriod>('week')
+/** The API may append an episode (".../ep-8"); the details page only wants the title's slug. */
+const animeSlug = (slug: string) => slug.split('/')[0]
 
+export function Trending({ items, isError, onRetry }: TrendingProps) {
   // The wheel plugin lets a trackpad two-finger swipe (or a tilt-wheel mouse)
   // scroll the row sideways. Vertical wheel movement still scrolls the page.
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', dragFree: true }, [
-    WheelGesturesPlugin(),
-  ])
-
-  // Start from #1 whenever the period changes.
-  useEffect(() => {
-    emblaApi?.scrollTo(0, true)
-  }, [period, emblaApi])
-
-  const items = data?.[period]
+  const [emblaRef] = useEmblaCarousel({ align: 'start', dragFree: true }, [WheelGesturesPlugin()])
 
   return (
-    <Section aria-labelledby="top-ten-heading">
+    <Section aria-labelledby="trending-heading">
       <HeadingRow>
-        <Heading id="top-ten-heading">{HEADINGS[period]}</Heading>
-
-        <Tabs role="tablist" aria-label="Ranking period">
-          {PERIODS.map(({ id, label }) => (
-            <Tab
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={period === id}
-              $active={period === id}
-              onClick={() => setPeriod(id)}
-            >
-              {label}
-            </Tab>
-          ))}
-        </Tabs>
+        <Heading id="trending-heading">Trending</Heading>
       </HeadingRow>
 
-      {isError && !data ? (
+      {isError && !items ? (
         <ErrorWrap>
-          <ErrorState message="Couldn't load the rankings." onRetry={onRetry} />
+          <ErrorState message="Couldn't load what's trending." onRetry={onRetry} />
         </ErrorWrap>
       ) : (
         <Viewport ref={emblaRef}>
           <Track>
             {items
-              ? items.map((item) => (
-                  <Slide key={`${period}-${item.slug}`}>
+              ? items.map((item, index) => (
+                  <Slide key={item.slug}>
                     <Card
-                      to={`/anime/${item.slug}`}
-                      title={item.name}
-                      aria-label={`Number ${item.rank}: ${item.name}`}
+                      to={`/anime/${animeSlug(item.slug)}`}
+                      title={item.title}
+                      aria-label={`Number ${index + 1}: ${item.title}`}
                       draggable={false}
                     >
                       <Poster $animate>
@@ -89,7 +53,7 @@ export function TopThisWeek({ data, isError, onRetry }: TopThisWeekProps) {
                           draggable={false}
                         />
                       </Poster>
-                      <Rank aria-hidden="true">{item.rank}</Rank>
+                      <Rank aria-hidden="true">{index + 1}</Rank>
                     </Card>
                   </Slide>
                 ))
@@ -158,32 +122,6 @@ const Heading = styled.h2`
     width: 3px;
     height: 1.05em;
     background: ${({ theme }) => theme.colors.accent};
-  }
-`
-
-/* The Today | Week | Month capsule. */
-const Tabs = styled.div`
-  display: inline-flex;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-`
-
-const Tab = styled.button<{ $active: boolean }>`
-  padding: 0.5em 1.3em;
-  border: 0;
-  border-radius: 999px;
-  background: ${({ $active, theme }) => ($active ? theme.colors.white : 'transparent')};
-  color: ${({ $active, theme }) => ($active ? theme.colors.black : theme.colors.white)};
-  font-size: clamp(0.8rem, 0.95vw, 1.05rem);
-  font-weight: 500;
-  line-height: 1.2;
-  cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease;
-
-  &:hover {
-    background: ${({ $active, theme }) => ($active ? theme.colors.white : 'rgba(255, 255, 255, 0.14)')};
   }
 `
 

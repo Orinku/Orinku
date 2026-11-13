@@ -52,20 +52,3 @@ export interface HomeData {
   topAiring: TopAiringItem[]
   genres: string[]
 }
-
-export type TopTenPeriod = 'today' | 'week' | 'month'
-
-export interface TopTenItem {
-  slug: string
-  /** 1-based position within its period. */
-  rank: number
-  name: string
-  /** Portrait thumbnail. */
-  poster: string
-  sub: number
-  dub: number
-  type: string
-}
-
-/** GET /api/top-ten */
-export type TopTenData = Record<TopTenPeriod, TopTenItem[]>
