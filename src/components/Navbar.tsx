@@ -69,16 +69,21 @@ export function Navbar() {
       <Actions $scrolled={scrolled}>
         {/* Placeholders for now — search and profile come in a later pass. */}
         {showSearchInput ? (
-          <Search
-            ref={searchRef}
-            type="search"
-            placeholder="search"
-            aria-label="Search anime"
-            onBlur={() => setSearchOpen(false)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') event.currentTarget.blur()
-            }}
-          />
+          <SearchField>
+            <SearchGlyph>
+              <SearchIcon />
+            </SearchGlyph>
+            <Search
+              ref={searchRef}
+              type="search"
+              placeholder="Search"
+              aria-label="Search anime"
+              onBlur={() => setSearchOpen(false)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') event.currentTarget.blur()
+              }}
+            />
+          </SearchField>
         ) : (
           <SearchButton type="button" aria-label="Search anime" onClick={() => setSearchOpen(true)}>
             <SearchIcon />
@@ -299,10 +304,35 @@ const SearchButton = styled.button`
   }
 `
 
+/* Wraps the input so the magnifier can sit inside it. */
+const SearchField = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  ${({ theme }) => theme.media.sm} {
+    display: none;
+  }
+`
+
+const SearchGlyph = styled.span`
+  position: absolute;
+  left: 0.95rem;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+
+  svg {
+    width: clamp(15px, 1.1vw, 20px);
+    height: auto;
+  }
+`
+
 const Search = styled.input`
-  width: clamp(130px, 9vw, 190px);
+  width: clamp(140px, 10vw, 200px);
   height: clamp(2.3rem, 2.7vw, 3.1rem);
-  padding: 0 1.1rem;
+  padding: 0 1.1rem 0 clamp(2.4rem, 2.6vw, 3rem);
   border: 0;
   border-radius: 999px;
   background: ${({ theme }) => theme.colors.glass};
@@ -310,7 +340,7 @@ const Search = styled.input`
   color: ${({ theme }) => theme.colors.white};
   font-size: clamp(0.85rem, 1vw, 1.1rem);
   font-weight: 300;
-  text-align: center;
+  text-align: left;
   transition: background 0.2s ease, width 0.25s ease;
 
   &::placeholder {
@@ -318,17 +348,12 @@ const Search = styled.input`
   }
 
   &:focus {
-    width: clamp(160px, 14vw, 260px);
+    width: clamp(170px, 14vw, 260px);
     background: rgba(30, 30, 30, 0.92);
-    text-align: left;
   }
 
   /* hide the browser's own clear button, we'll style our own later */
   &::-webkit-search-cancel-button {
-    display: none;
-  }
-
-  ${({ theme }) => theme.media.sm} {
     display: none;
   }
 `
