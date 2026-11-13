@@ -318,6 +318,8 @@ const SearchField = styled.div`
 const SearchGlyph = styled.span`
   position: absolute;
   left: 0.95rem;
+  /* the input's backdrop-filter paints later in the DOM and would cover the icon */
+  z-index: 1;
   display: grid;
   place-items: center;
   color: rgba(255, 255, 255, 0.85);
