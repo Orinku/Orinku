@@ -15,6 +15,9 @@ const LINKS = [
 /** How far the page must scroll before the bar turns into floating capsules. */
 const SCROLL_THRESHOLD = 40
 
+/** Matches the theme's `md` breakpoint (max-width: 899px) from the other side. */
+const DESKTOP_QUERY = '(min-width: 900px)'
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -27,7 +30,8 @@ function SearchIcon() {
 export function Navbar() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(() => window.scrollY > SCROLL_THRESHOLD)
+  const [pastTop, setPastTop] = useState(() => window.scrollY > SCROLL_THRESHOLD)
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
   const [searchOpen, setSearchOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -35,11 +39,21 @@ export function Navbar() {
   const onDark = pathname !== '/'
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)
+    const onScroll = () => setPastTop(window.scrollY > SCROLL_THRESHOLD)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    const query = window.matchMedia(DESKTOP_QUERY)
+    const onChange = () => setIsDesktop(query.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+
+  // The floating capsules are desktop-only; tablets and phones keep the plain bar.
+  const scrolled = pastTop && isDesktop
 
   // When the search pill opens from its icon, put the cursor straight in it.
   useEffect(() => {
@@ -114,8 +128,7 @@ const dropIn = keyframes`
 `
 
 /* The dark glass look shared by both floating capsules.
-   The blur lives on a pseudo-element: backdrop-filter on the capsule itself would
-   trap the mobile dropdown (position: fixed) inside it. */
+   The blur lives on a pseudo-element so the capsule itself has no filter. */
 const capsule = css`
   position: relative;
   isolation: isolate;
@@ -164,6 +177,8 @@ const Bar = styled.header<{ $dark: boolean; $scrolled: boolean }>`
         `}
 
   ${({ theme }) => theme.media.md} {
+    /* tablets and phones: the original bar that scrolls away with the page */
+    position: absolute;
     grid-template-columns: 1fr auto;
     color: ${({ theme }) => theme.colors.white};
   }
@@ -224,9 +239,8 @@ const Links = styled.nav<{ $open: boolean; $scrolled: boolean }>`
 
   ${({ theme }) => theme.media.md} {
     display: ${({ $open }) => ($open ? 'flex' : 'none')};
-    /* fixed (not absolute) so it hangs off the screen, not off the capsule */
-    position: fixed;
-    top: ${({ $scrolled }) => ($scrolled ? '4rem' : '4.5rem')};
+    position: absolute;
+    top: 100%;
     left: ${({ theme }) => theme.gutter};
     right: ${({ theme }) => theme.gutter};
     flex-direction: column;
