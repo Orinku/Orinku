@@ -52,7 +52,8 @@ export function Navbar() {
     return () => query.removeEventListener('change', onChange)
   }, [])
 
-  // The floating capsules are desktop-only; tablets and phones keep the plain bar.
+  // Desktop: the whole bar turns into two floating capsules.
+  // Tablets and phones: the bar scrolls away as usual, only profile + menu float.
   const scrolled = pastTop && isDesktop
 
   // When the search pill opens from its icon, put the cursor straight in it.
@@ -61,7 +62,7 @@ export function Navbar() {
   }, [searchOpen])
 
   // While floating, the search is just an icon until it's clicked.
-  const showSearchInput = !scrolled || searchOpen
+  const showSearchInput = !pastTop || searchOpen
 
   return (
     <Bar $dark={onDark} $scrolled={scrolled}>
@@ -71,7 +72,7 @@ export function Navbar() {
           <LogoLight $dark={onDark || scrolled} src={wordmarkWhite} alt="" aria-hidden="true" />
         </Brand>
 
-        <Links id="primary-nav" $open={open} $scrolled={scrolled} aria-label="Primary">
+        <Links id="primary-nav" $open={open} $scrolled={scrolled} $pinned={pastTop} aria-label="Primary">
           {LINKS.map((link) => (
             <StyledNavLink key={link.to} to={link.to} end={link.end} onClick={() => setOpen(false)}>
               {link.label}
@@ -80,7 +81,7 @@ export function Navbar() {
         </Links>
       </LeftPill>
 
-      <Actions $scrolled={scrolled}>
+      <Actions $floating={pastTop}>
         {/* Placeholders for now — search and profile come in a later pass. */}
         {showSearchInput ? (
           <SearchField>
@@ -231,7 +232,7 @@ const LogoLight = styled.img<{ $dark: boolean }>`
   }
 `
 
-const Links = styled.nav<{ $open: boolean; $scrolled: boolean }>`
+const Links = styled.nav<{ $open: boolean; $scrolled: boolean; $pinned: boolean }>`
   display: flex;
   align-items: center;
   gap: ${({ $scrolled }) => ($scrolled ? 'clamp(1.25rem, 2.4vw, 3rem)' : 'clamp(1.5rem, 3.4vw, 4.5rem)')};
@@ -239,8 +240,9 @@ const Links = styled.nav<{ $open: boolean; $scrolled: boolean }>`
 
   ${({ theme }) => theme.media.md} {
     display: ${({ $open }) => ($open ? 'flex' : 'none')};
-    position: absolute;
-    top: 100%;
+    /* once the menu button floats, the dropdown has to stay with it */
+    position: ${({ $pinned }) => ($pinned ? 'fixed' : 'absolute')};
+    top: ${({ $pinned }) => ($pinned ? '4.25rem' : '100%')};
     left: ${({ theme }) => theme.gutter};
     right: ${({ theme }) => theme.gutter};
     flex-direction: column;
@@ -281,18 +283,26 @@ const StyledNavLink = styled(NavLink)`
   }
 `
 
-const Actions = styled.div<{ $scrolled: boolean }>`
+const Actions = styled.div<{ $floating: boolean }>`
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: ${({ $scrolled }) => ($scrolled ? '0.4rem' : 'clamp(0.6rem, 1vw, 1.1rem)')};
+  gap: ${({ $floating }) => ($floating ? '0.4rem' : 'clamp(0.6rem, 1vw, 1.1rem)')};
   pointer-events: auto;
 
-  ${({ $scrolled }) =>
-    $scrolled &&
+  ${({ $floating }) =>
+    $floating &&
     css`
       ${capsule}
       padding: 0.35rem;
+
+      /* tablets and phones: the bar itself scrolls away, so this capsule pins itself */
+      ${({ theme }) => theme.media.md} {
+        position: fixed;
+        top: 0.6rem;
+        right: ${({ theme }) => theme.gutter};
+        z-index: 1;
+      }
     `}
 `
 
