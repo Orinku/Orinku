@@ -12,7 +12,7 @@ export default function App() {
         <Route path="movies" element={<ComingSoon title="Movies" />} />
         <Route path="genre" element={<ComingSoon title="Genre" />} />
         <Route
-          path="anime/:id"
+          path="anime/:slug"
           element={<ComingSoon title="Details" message="The details page is coming soon." />}
         />
         <Route

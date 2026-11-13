@@ -1,19 +1,23 @@
 import { Hero } from '../components/Hero'
 import { TopThisWeek } from '../components/TopThisWeek'
-import { FALLBACK_ANIME } from '../data/fallback'
-import { useTrendingAnime } from '../hooks/useTrendingAnime'
+import { useHome } from '../hooks/useHome'
+import { useTopTen } from '../hooks/useTopTen'
 
 export default function Home() {
-  const { data, isError } = useTrendingAnime()
+  const home = useHome()
+  const topTen = useTopTen()
 
-  // If AniList can't be reached, show built-in sample data rather than a blank page.
-  const anime = isError ? FALLBACK_ANIME : data
-  const featured = anime?.find((item) => item.bannerImage) ?? anime?.[0]
+  // Skip any spotlight that has no backdrop image.
+  const slides = home.data?.spotlights.filter((spotlight) => spotlight.poster)
 
   return (
     <>
-      <Hero anime={featured} />
-      <TopThisWeek items={anime?.slice(0, 10)} />
+      <Hero slides={slides} isError={home.isError} onRetry={() => void home.refetch()} />
+      <TopThisWeek
+        data={topTen.data}
+        isError={topTen.isError}
+        onRetry={() => void topTen.refetch()}
+      />
     </>
   )
 }

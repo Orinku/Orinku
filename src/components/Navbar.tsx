@@ -199,7 +199,8 @@ const Avatar = styled.button`
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors.paper};
+  background: ${({ theme }) => theme.colors.white};
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.22);
   cursor: pointer;
   overflow: hidden;
   transition: transform 0.2s ease;

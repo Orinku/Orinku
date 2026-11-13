@@ -10,34 +10,49 @@ npm run dev      # http://localhost:5173
 npm run build    # type-check + production build
 ```
 
+## API setup
+
+The site reads its data from the Orinku API. Set the address in `.env`:
+
+```
+VITE_API_URL=http://localhost:4000/api
+```
+
+| Page area           | Request                         |
+| ------------------- | ------------------------------- |
+| Hero slideshow      | `GET {VITE_API_URL}` (`results.spotlights`) |
+| Top this week row   | `GET {VITE_API_URL}/top-ten` (`results.today / week / month`) |
+
+- Change the port (or the whole URL) in `.env`, then **restart `npm run dev`** — Vite only reads `.env` at start-up.
+- The API must allow cross-origin requests from the dev server (CORS), since the site runs on a different port.
+- `.env.example` is a template to copy.
+
 ## Stack
 
 - **Vite + React 19 + TypeScript** (strict mode)
 - **styled-components** with a typed theme (`src/styles/theme.ts`)
 - **React Router** for pages
 - **TanStack Query** for data fetching and caching
-- **Embla Carousel** for the "Top this week" row
-- **AniList GraphQL API** for data (free, no key needed)
+- **Embla Carousel** (+ wheel gestures) for the "Top this week" row
 
 ## Structure
 
 ```
 src/
-  api/          AniList client
+  api/          API client (client.ts) and endpoint functions (index.ts)
   assets/brand/ logos (fox mark + wordmark, black and white)
-  components/   Navbar, Hero, TopThisWeek, Layout
-  data/         fallback data used if AniList is unreachable
-  hooks/        useTrendingAnime
+  components/   Navbar, Hero (slideshow), TopThisWeek, ErrorState, Layout
+  hooks/        useHome, useTopTen
   pages/        Home, ComingSoon (placeholder for unbuilt pages)
   styles/       theme, global styles, styled-components typings
-  types/        shared types
+  types/        API response types
 ```
 
 ## Status
 
-- [x] Home page
+- [x] Home page (hero slideshow + top ten with Today / Week / Month)
 - [ ] Now Airing
 - [ ] Movies
 - [ ] Genre
-- [ ] Anime details page (`/anime/:id`, target of "Watch now")
+- [ ] Anime details page (`/anime/:slug`, target of "Watch now" and the poster cards)
 - [ ] Working search and profile (currently visual placeholders)
