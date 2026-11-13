@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import styled from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import wordmarkBlack from '../assets/brand/wordmark-black.png'
 import wordmarkWhite from '../assets/brand/wordmark-white.png'
 import foxBlack from '../assets/brand/fox-black.png'
@@ -12,31 +12,78 @@ const LINKS = [
   { to: '/genre', label: 'Genre', end: false },
 ] as const
 
+/** How far the page must scroll before the bar turns into floating capsules. */
+const SCROLL_THRESHOLD = 40
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4.5 4.5" />
+    </svg>
+  )
+}
+
 export function Navbar() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(() => window.scrollY > SCROLL_THRESHOLD)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   // Only the home page has the light hero; every other page is plain black.
   const onDark = pathname !== '/'
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // When the search pill opens from its icon, put the cursor straight in it.
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus()
+  }, [searchOpen])
+
+  // While floating, the search is just an icon until it's clicked.
+  const showSearchInput = !scrolled || searchOpen
+
   return (
-    <Bar $dark={onDark}>
-      <Brand to="/" aria-label="Orinku home">
-        <LogoDark $dark={onDark} src={wordmarkBlack} alt="Orinku" />
-        <LogoLight $dark={onDark} src={wordmarkWhite} alt="" aria-hidden="true" />
-      </Brand>
+    <Bar $dark={onDark} $scrolled={scrolled}>
+      <LeftPill $scrolled={scrolled}>
+        <Brand to="/" aria-label="Orinku home">
+          <LogoDark $dark={onDark || scrolled} src={wordmarkBlack} alt="Orinku" />
+          <LogoLight $dark={onDark || scrolled} src={wordmarkWhite} alt="" aria-hidden="true" />
+        </Brand>
 
-      <Links id="primary-nav" $open={open} aria-label="Primary">
-        {LINKS.map((link) => (
-          <StyledNavLink key={link.to} to={link.to} end={link.end} onClick={() => setOpen(false)}>
-            {link.label}
-          </StyledNavLink>
-        ))}
-      </Links>
+        <Links id="primary-nav" $open={open} $scrolled={scrolled} aria-label="Primary">
+          {LINKS.map((link) => (
+            <StyledNavLink key={link.to} to={link.to} end={link.end} onClick={() => setOpen(false)}>
+              {link.label}
+            </StyledNavLink>
+          ))}
+        </Links>
+      </LeftPill>
 
-      <Actions>
+      <Actions $scrolled={scrolled}>
         {/* Placeholders for now — search and profile come in a later pass. */}
-        <Search type="search" placeholder="search" aria-label="Search anime" />
+        {showSearchInput ? (
+          <Search
+            ref={searchRef}
+            type="search"
+            placeholder="search"
+            aria-label="Search anime"
+            onBlur={() => setSearchOpen(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') event.currentTarget.blur()
+            }}
+          />
+        ) : (
+          <SearchButton type="button" aria-label="Search anime" onClick={() => setSearchOpen(true)}>
+            <SearchIcon />
+          </SearchButton>
+        )}
         <Avatar type="button" aria-label="Your profile">
           <img src={foxBlack} alt="" />
         </Avatar>
@@ -56,15 +103,60 @@ export function Navbar() {
   )
 }
 
-const Bar = styled.header<{ $dark: boolean }>`
-  position: absolute;
+const dropIn = keyframes`
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
+/* The dark glass look shared by both floating capsules.
+   The blur lives on a pseudo-element: backdrop-filter on the capsule itself would
+   trap the mobile dropdown (position: fixed) inside it. */
+const capsule = css`
+  position: relative;
+  isolation: isolate;
+  color: ${({ theme }) => theme.colors.white};
+  animation: ${dropIn} 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 999px;
+    background: rgba(18, 18, 18, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  }
+`
+
+const Bar = styled.header<{ $dark: boolean; $scrolled: boolean }>`
+  position: fixed;
   inset: 0 0 auto 0;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: clamp(1rem, 2.6vw, 2.75rem) ${({ theme }) => theme.gutter};
-  color: ${({ theme, $dark }) => ($dark ? theme.colors.white : theme.colors.ink)};
+  z-index: 50;
+  /* only the controls catch clicks, the gaps let the page underneath through */
+  pointer-events: none;
+  padding: ${({ $scrolled }) =>
+      $scrolled ? 'clamp(0.6rem, 1.2vw, 1.1rem)' : 'clamp(1rem, 2.6vw, 2.75rem)'}
+    ${({ theme }) => theme.gutter};
+  color: ${({ theme, $dark, $scrolled }) =>
+    $dark || $scrolled ? theme.colors.white : theme.colors.ink};
+  transition: padding 0.3s ease;
+
+  ${({ $scrolled }) =>
+    $scrolled
+      ? css`
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+        `
+      : css`
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+        `}
 
   ${({ theme }) => theme.media.md} {
     grid-template-columns: 1fr auto;
@@ -72,10 +164,28 @@ const Bar = styled.header<{ $dark: boolean }>`
   }
 `
 
+/* Logo + links. At the top of the page it's invisible (its children sit directly in
+   the bar's grid); once scrolled it becomes the left capsule. */
+const LeftPill = styled.div<{ $scrolled: boolean }>`
+  display: contents;
+
+  ${({ $scrolled }) =>
+    $scrolled &&
+    css`
+      ${capsule}
+      display: flex;
+      align-items: center;
+      gap: clamp(1.5rem, 3vw, 3.5rem);
+      padding: 0.55rem clamp(1.1rem, 1.8vw, 2rem);
+      pointer-events: auto;
+    `}
+`
+
 const Brand = styled(Link)`
   justify-self: start;
   display: inline-flex;
   align-items: center;
+  pointer-events: auto;
 `
 
 const logoSize = `
@@ -101,15 +211,17 @@ const LogoLight = styled.img<{ $dark: boolean }>`
   }
 `
 
-const Links = styled.nav<{ $open: boolean }>`
+const Links = styled.nav<{ $open: boolean; $scrolled: boolean }>`
   display: flex;
   align-items: center;
-  gap: clamp(1.5rem, 3.4vw, 4.5rem);
+  gap: ${({ $scrolled }) => ($scrolled ? 'clamp(1.25rem, 2.4vw, 3rem)' : 'clamp(1.5rem, 3.4vw, 4.5rem)')};
+  pointer-events: auto;
 
   ${({ theme }) => theme.media.md} {
     display: ${({ $open }) => ($open ? 'flex' : 'none')};
-    position: absolute;
-    top: 100%;
+    /* fixed (not absolute) so it hangs off the screen, not off the capsule */
+    position: fixed;
+    top: ${({ $scrolled }) => ($scrolled ? '4rem' : '4.5rem')};
     left: ${({ theme }) => theme.gutter};
     right: ${({ theme }) => theme.gutter};
     flex-direction: column;
@@ -150,11 +262,41 @@ const StyledNavLink = styled(NavLink)`
   }
 `
 
-const Actions = styled.div`
+const Actions = styled.div<{ $scrolled: boolean }>`
   justify-self: end;
   display: flex;
   align-items: center;
-  gap: clamp(0.6rem, 1vw, 1.1rem);
+  gap: ${({ $scrolled }) => ($scrolled ? '0.4rem' : 'clamp(0.6rem, 1vw, 1.1rem)')};
+  pointer-events: auto;
+
+  ${({ $scrolled }) =>
+    $scrolled &&
+    css`
+      ${capsule}
+      padding: 0.35rem;
+    `}
+`
+
+/* Search collapsed to an icon, shown only while the bar is floating. */
+const SearchButton = styled.button`
+  display: grid;
+  place-items: center;
+  width: clamp(2.3rem, 2.7vw, 3.1rem);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  ${({ theme }) => theme.media.sm} {
+    display: none;
+  }
 `
 
 const Search = styled.input`
