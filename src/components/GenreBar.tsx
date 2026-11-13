@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
 import { ALLOWED_GENRES, genreSlug } from '../data/genres'
@@ -23,6 +23,8 @@ export function GenreBar({ genres, isError }: GenreBarProps) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [canPrev, setCanPrev] = useState(false)
   const [canNext, setCanNext] = useState(false)
+  // Where the row was last centred automatically (null until the chips have loaded).
+  const centeredAt = useRef<number | null>(null)
 
   const visible = genres?.filter((genre) => ALLOWED_GENRES.has(genre))
   const count = visible?.length ?? 0
@@ -34,6 +36,25 @@ export function GenreBar({ genres, isError }: GenreBarProps) {
     setCanPrev(el.scrollLeft > 1)
     setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
   }, [])
+
+  // Start in the middle of the row, so there's something to scroll to on both sides.
+  useLayoutEffect(() => {
+    const el = scrollerRef.current
+    if (!el || count === 0 || centeredAt.current !== null) return
+
+    const center = () => {
+      el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+      centeredAt.current = el.scrollLeft
+      update()
+    }
+    center()
+
+    // The web font can change the chips' widths after first paint; re-centre once it's in,
+    // unless the visitor has already started scrolling.
+    void document.fonts?.ready.then(() => {
+      if (centeredAt.current !== null && Math.abs(el.scrollLeft - centeredAt.current) < 2) center()
+    })
+  }, [count, update])
 
   useEffect(() => {
     const el = scrollerRef.current
